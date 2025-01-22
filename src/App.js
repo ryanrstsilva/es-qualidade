@@ -17,18 +17,18 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="w-full min-h-screen bg-gray-50">
       <Navbar />
-      <h1 className="text-4xl text-center pt-5">Portal de Periódicos</h1>
+      {/* <h1 className="text-4xl text-center pt-5">Portal de Periódicos</h1> */}
       
       {/* Search Section */}
-      <div className='w-full bg-slate-200 border border-1 border-t-gray-400 border-b-gray-400 py-4 mt-4'>
+      <div className='w-full bg-slate-200 border border-1 border-t-gray-400 border-b-gray-400 pt-4 pb-2'>
         <div className='flex flex-col items-center gap-2'>
           <PublicationSearchInput
             value={searchQuery}
             onSearchChange={handleSearch}
           />
-          <p className="text-center">{resultsCount} results</p>
+          <p className="text-center mt-2">{resultsCount} results</p>
         </div>
       </div>
 

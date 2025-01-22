@@ -3,7 +3,7 @@ import React from 'react';
 function Navbar() {
   return (
     <nav className="bg-white border-b border-gray-200">
-      <div className="max-w-7xl mx-auto px-4">
+      <div className=" mx-auto px-4">
         <div className="flex justify-between h-16">
           {/* Left side - Logo and nav items */}
           <div className="flex items-center">
@@ -24,6 +24,10 @@ function Navbar() {
                 Suggest
               </a>
             </div>
+          </div>
+
+          <div className='flex items-center'>
+            <h1 className='text-2xl'>Portal de Periódicos</h1>
           </div>
 
           {/* Right side - Auth buttons */}

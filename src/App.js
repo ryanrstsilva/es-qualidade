@@ -1,15 +1,49 @@
+import React, { useState } from 'react';
 import PublicationSearch from './pages/PublicationSearch';
-import PublicationCard from './components/PublicationCard';
+import Navbar from './components/Navbar';
+import PublicationSearchInput from './components/PublicationSearchInput';
+import SidebarFilters from './components/SidebarFilters';
 
 function App() {
-  return (
-    <div className='bg-[#efefef]'>
-      <header className="">
-        
-      </header>
+  const [searchQuery, setSearchQuery] = useState('');
+  const [resultsCount, setResultsCount] = useState(0);
 
-      <h1 className='flex items-center justify-center pt-10 text-4xl'>Portal de Periódicos</h1>
-      <PublicationSearch />
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+  };
+
+  const handleResultsChange = (count) => {
+    setResultsCount(count);
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Navbar />
+      <h1 className="text-4xl text-center pt-5">Portal de Periódicos</h1>
+      
+      {/* Search Section */}
+      <div className='w-full bg-slate-200 border border-1 border-t-gray-400 border-b-gray-400 py-4 mt-4'>
+        <div className='flex flex-col items-center gap-2'>
+          <PublicationSearchInput
+            value={searchQuery}
+            onSearchChange={handleSearch}
+          />
+          <p className="text-center">{resultsCount} results</p>
+        </div>
+      </div>
+
+      <div className='flex'>
+        {/* Sidebar */}
+        <SidebarFilters className="h-full" />
+
+        {/* Main Content */}
+        <div className="container mx-auto">
+          <PublicationSearch 
+            searchQuery={searchQuery} 
+            onResultsChange={handleResultsChange}
+          />
+        </div>
+      </div>
     </div>
   );
 }

@@ -1,17 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import PublicationSearchInput from '../components/PublicationSearchIput';
 import PublicationCard from '../components/PublicationCard';
 
-function PublicationSearch() {
+function PublicationSearch({ searchQuery, onResultsChange  }) {
   const [publications, setPublications] = useState([]);
   const [filteredPublications, setFilteredPublications] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 15;
 
   useEffect(() => {
     fetchPublications();
   }, []);
+
+  useEffect(() => {
+    searchPublications(searchQuery);
+  }, [searchQuery, publications]);
+
+  useEffect(() => {
+    onResultsChange(filteredPublications.length);
+  }, [filteredPublications, onResultsChange]);
 
   const fetchPublications = async () => {
     try {
@@ -27,11 +35,10 @@ function PublicationSearch() {
     }
   };
 
-  // Função de busca que implementa uma lógica de relevância
   const searchPublications = (query) => {
-    setSearchQuery(query);
+    setCurrentPage(1); // Reset para primeira página ao pesquisar
     
-    if (!query.trim()) {
+    if (!query?.trim()) {
       setFilteredPublications(publications);
       return;
     }
@@ -40,24 +47,18 @@ function PublicationSearch() {
     
     const getRelevanceScore = (publication) => {
       let score = 0;
-      const searchableText = `${publication.name} ${publication.email} ${publication.body}`.toLowerCase();
       
-      // Pontuação para correspondências exatas no título
       if (publication.name.toLowerCase().includes(query.toLowerCase())) {
         score += 10;
       }
 
-      // Pontuação para cada termo de busca encontrado
       searchTerms.forEach(term => {
-        // Correspondência no título tem peso maior
         if (publication.name.toLowerCase().includes(term)) {
           score += 5;
         }
-        // Correspondência no corpo do texto
         if (publication.body.toLowerCase().includes(term)) {
           score += 2;
         }
-        // Correspondência no email
         if (publication.email.toLowerCase().includes(term)) {
           score += 1;
         }
@@ -77,6 +78,46 @@ function PublicationSearch() {
     setFilteredPublications(filtered);
   };
 
+  // Cálculos para paginação
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredPublications.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredPublications.length / itemsPerPage);
+
+  const Pagination = () => {
+    return (
+      <div className="flex justify-center items-center gap-2 my-6">
+        <button
+          onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+          disabled={currentPage === 1}
+          className={`px-3 py-1 rounded ${
+            currentPage === 1
+              ? 'bg-gray-100 text-gray-400'
+              : 'bg-white text-gray-700 hover:bg-gray-50'
+          }`}
+        >
+          Previous
+        </button>
+        
+        <span className="px-4 py-1 text-sm">
+          Page {currentPage} of {totalPages}
+        </span>
+        
+        <button
+          onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+          disabled={currentPage === totalPages}
+          className={`px-3 py-1 rounded ${
+            currentPage === totalPages
+              ? 'bg-gray-100 text-gray-400'
+              : 'bg-white text-gray-700 hover:bg-gray-50'
+          }`}
+        >
+          Next
+        </button>
+      </div>
+    );
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -94,44 +135,46 @@ function PublicationSearch() {
   }
 
   return (
-    <div className="flex flex-col w-full mx-auto place-items-center justify-center px-4 py-8">
-        <PublicationSearchInput
-        value={searchQuery}
-        onSearchChange={searchPublications}
-      />
-      <p className='mt-3'>{filteredPublications.length} results</p>
- 
-      {/* Área de ordenação */}
-      <div className="flex flex-row gap-2 mt-2 mb-4">
-        <button className="px-4 py-2 text-sm bg-blue-50 text-blue-600 rounded hover:bg-blue-100">
-            Most relevant
-        </button>
-        <button className="px-4 py-2 text-sm text-gray-600 rounded hover:bg-gray-100">
-            Most recent
-        </button>
-        <button className="px-4 py-2 text-sm text-gray-600 rounded hover:bg-gray-100">
-            Most cited
-        </button>
-      </div>
+    <div className="px-4 py-6">
+      <div className="flex gap-8">
+        {/* Main content */}
+        <div className="flex-1">
+          {/* Área de ordenação */}
+          <div className="flex flex-row items-center justify-center gap-2 mb-6">
+            <button className="px-4 py-2 text-sm bg-blue-50 text-blue-600 rounded hover:bg-blue-100">
+              Most relevant
+            </button>
+            <button className="px-4 py-2 text-sm text-gray-600 rounded hover:bg-gray-100">
+              Most recent
+            </button>
+            <button className="px-4 py-2 text-sm text-gray-600 rounded hover:bg-gray-100">
+              Most cited
+            </button>
+          </div>
 
-       {/* Lista de publicações */}
-      <div className="flex flex-col items-center justify-center">
-        {filteredPublications.map((publication) => (
-          <PublicationCard
-            key={publication.id}
-            name={publication.name}
-            email={publication.email}
-            body={publication.body}
-          />
-        ))}
-      </div>
+          {/* Lista de publicações */}
+          <div className="flex flex-col items-center">
+            {currentItems.map((publication) => (
+              <PublicationCard
+                key={publication.id}
+                name={publication.name}
+                email={publication.email}
+                body={publication.body}
+              />
+            ))}
+          </div>
 
-      {/* Mensagem quando não há resultados */}
-      {filteredPublications.length === 0 && searchQuery && (
-        <div className="text-center text-gray-600 py-8">
-          No publications found for "{searchQuery}"
+          {/* Paginação */}
+          {filteredPublications.length > 0 && <Pagination />}
+
+          {/* Mensagem quando não há resultados */}
+          {filteredPublications.length === 0 && searchQuery && (
+            <div className="text-center text-gray-600 py-8">
+              No publications found for "{searchQuery}"
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
